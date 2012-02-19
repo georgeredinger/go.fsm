@@ -2,30 +2,30 @@ package fsm
 
 import "testing"
 
-type testTokenMachineContext struct {
+type testTokenMachineDelegate struct {
 	count   int
 	char    rune
 	entered int
 }
 
-func (ctx *testTokenMachineContext) StateMachineCallback(action string, args []interface{}) {
+func (delegate *testTokenMachineDelegate) StateMachineCallback(action string, args []interface{}) {
 	switch action {
 	case "token_inc":
-		ctx.count++
-		ctx.char = args[0].(rune)
+		delegate.count++
+		delegate.char = args[0].(rune)
 	case "enter":
-		ctx.entered++
+		delegate.entered++
 	case "exit":
-		ctx.entered = 7
+		delegate.entered = 7
 	case "default":
-		ctx.entered = 88
+		delegate.entered = 88
 	}
 }
 
 func TestTokenMachine(t *testing.T) {
-	var ctx testTokenMachineContext
+	var delegate testTokenMachineDelegate
 
-	tm := NewStateMachine(&ctx,
+	tm := NewStateMachine(&delegate,
 		Transition{From: "locked", Event: "coin", To: "unlocked", Action: "token_inc"},
 		Transition{From: "locked", Event: OnEntry, Action: "enter"},
 		Transition{From: "locked", Event: Default, To: "locked", Action: "default"},
@@ -38,10 +38,10 @@ func TestTokenMachine(t *testing.T) {
 	if !(tm.currentState.From == "locked") {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.count == 0) {
+	if !(delegate.count == 0) {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.char == 0) {
+	if !(delegate.char == 0) {
 		t.Errorf("state machine failure")
 	}
 
@@ -52,10 +52,10 @@ func TestTokenMachine(t *testing.T) {
 	if !(tm.currentState.From == "unlocked") {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.count == 1) {
+	if !(delegate.count == 1) {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.char == 'i') {
+	if !(delegate.char == 'i') {
 		t.Errorf("state machine failure")
 	}
 
@@ -75,10 +75,10 @@ func TestTokenMachine(t *testing.T) {
 	if !(tm.currentState.From == "unlocked") {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.count == 1) {
+	if !(delegate.count == 1) {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.char == 'i') {
+	if !(delegate.char == 'i') {
 		t.Errorf("state machine failure")
 	}
 
@@ -89,11 +89,11 @@ func TestTokenMachine(t *testing.T) {
 	if !(tm.currentState.From == "locked") {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.count == 1) {
+	if !(delegate.count == 1) {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.entered == 8) {
-		t.Errorf("state machine failure, %d", ctx.entered)
+	if !(delegate.entered == 8) {
+		t.Errorf("state machine failure, %d", delegate.entered)
 	}
 
 	e = tm.Process("random", 'p')
@@ -103,7 +103,7 @@ func TestTokenMachine(t *testing.T) {
 	if !(tm.currentState.From == "locked") {
 		t.Errorf("state machine failure")
 	}
-	if !(ctx.entered == 88) {
-		t.Errorf("state machine failure, %d", ctx.entered)
+	if !(delegate.entered == 88) {
+		t.Errorf("state machine failure, %d", delegate.entered)
 	}
 }

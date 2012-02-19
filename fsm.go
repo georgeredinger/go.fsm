@@ -2,16 +2,18 @@
 //
 // Here is the basic API:
 //
-//     sm := NewStateMachine(&delegate,
+//     sm := []StateMachineRule{
 //
-//       Transition{ From: "locked",    Event: "coin",     To: "unlocked",  Action: "token_inc" },
-//       Transition{ From: "locked",    Event: OnEntry,                     Action: "enter" },
-//       Transition{ From: "locked",    Event: Default,    To: "locked",    Action: "default" },
+//       { From: "locked",    Event: "coin",     To: "unlocked",  Action: "token_inc" },
+//       { From: "locked",    Event: OnEntry,                     Action: "enter" },
+//       { From: "locked",    Event: Default,    To: "locked",    Action: "default" },
 //
-//       Transition{ From: "unlocked",  Event: "turn",     To: "locked",    },
-//       Transition{ From: "unlocked",  Event: OnExit,                      Action: "exit" },
+//       { From: "unlocked",  Event: "turn",     To: "locked",    },
+//       { From: "unlocked",  Event: OnExit,                      Action: "exit" },
 //
-//       )
+//     }
+//
+//     sm := NewStateMachine(rules, &delegate)
 //
 //     sm.Process("coin")
 //     sm.Process("turn", optionalArg, ...)
@@ -28,22 +30,22 @@ const (
 	Default = "DEFAULT"
 )
 
-type Transition struct {
+type StateMachineRule struct {
 	From   string
 	Event  string
 	To     string
 	Action string
 }
 
-// 'action' corresponds to what's in a Transition
+// 'action' corresponds to what's in a StateMachineRule
 type Delegate interface {
 	StateMachineCallback(action string, args []interface{})
 }
 
 type StateMachine struct {
+	transitions  []StateMachineRule
+	currentState *StateMachineRule
 	delegate     Delegate
-	transitions  []Transition
-	currentState *Transition
 }
 
 // Satisfies the built-in interface 'error'
@@ -70,10 +72,10 @@ func (e smError) BadEvent() string {
 	return e.badEvent
 }
 
-// Use this in conjunction with Transition literals, keeping
+// Use this in conjunction with StateMachineRule literals, keeping
 // in mind that To may be omitted for actions, and Action may
 // always be omitted. See the overview above for an example.
-func NewStateMachine(delegate Delegate, transitions ...Transition) StateMachine {
+func NewStateMachine(transitions []StateMachineRule, delegate Delegate) StateMachine {
 	return StateMachine{delegate: delegate, transitions: transitions, currentState: &transitions[0]}
 }
 
@@ -106,7 +108,7 @@ func (m *StateMachine) Process(event string, args ...interface{}) Error {
 	return nil
 }
 
-func (m *StateMachine) findTransMatching(fromState string, event string) *Transition {
+func (m *StateMachine) findTransMatching(fromState string, event string) *StateMachineRule {
 	for _, v := range m.transitions {
 		if v.From == fromState && v.Event == event {
 			return &v
@@ -121,7 +123,7 @@ func (m *StateMachine) runAction(state string, event string, args []interface{})
 	}
 }
 
-func (m *StateMachine) findState(state string) *Transition {
+func (m *StateMachine) findState(state string) *StateMachineRule {
 	for _, v := range m.transitions {
 		if v.From == state {
 			return &v

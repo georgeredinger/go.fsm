@@ -25,13 +25,15 @@ func (delegate *testTokenMachineDelegate) StateMachineCallback(action string, ar
 func TestTokenMachine(t *testing.T) {
 	var delegate testTokenMachineDelegate
 
-	tm := NewStateMachine(&delegate,
-		Transition{From: "locked", Event: "coin", To: "unlocked", Action: "token_inc"},
-		Transition{From: "locked", Event: OnEntry, Action: "enter"},
-		Transition{From: "locked", Event: Default, To: "locked", Action: "default"},
-		Transition{From: "unlocked", Event: "turn", To: "locked"},
-		Transition{From: "unlocked", Event: OnExit, Action: "exit"},
-	)
+	rules := []StateMachineRule{
+		{From: "locked", Event: "coin", To: "unlocked", Action: "token_inc"},
+		{From: "locked", Event: OnEntry, Action: "enter"},
+		{From: "locked", Event: Default, To: "locked", Action: "default"},
+		{From: "unlocked", Event: "turn", To: "locked"},
+		{From: "unlocked", Event: OnExit, Action: "exit"},
+	}
+
+  tm := NewStateMachine(rules, &delegate)
 
 	var e Error
 

@@ -27,7 +27,7 @@ func (delegate *testTokenMachineDelegate) StateMachineCallback(action string, ar
 func TestTokenMachine(t *testing.T) {
   var delegate testTokenMachineDelegate
 
-  rules := []StateMachineRule{
+  rules := []Rule{
     {From: "locked", Event: "coin", To: "unlocked", Action: "token_inc"},
     {From: "locked", Event: OnEntry, Action: "enter"},
     {From: "locked", Event: Default, To: "locked", Action: "default"},

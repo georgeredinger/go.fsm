@@ -1,8 +1,7 @@
 package fsm
 
 import "testing"
-import "runtime"
-import "path"
+import "assert"
 
 type testTokenMachineDelegate struct {
   count   int
@@ -39,39 +38,32 @@ func TestTokenMachine(t *testing.T) {
 
   var e Error
 
-  assertEquals(t, tm.CurrentState(), "locked")
-  assertEquals(t, delegate.count, 0)
-  assertEquals(t, int(delegate.char), 0)
+  assert.Equals(t, tm.CurrentState(), "locked")
+  assert.Equals(t, delegate.count, 0)
+  assert.Equals(t, int(delegate.char), 0)
 
   e = tm.Process("coin", 'i')
-  assertEquals(t, e, nil)
-  assertEquals(t, tm.CurrentState(), "unlocked")
-  assertEquals(t, delegate.count, 1)
-  assertEquals(t, delegate.char, 'i')
+  assert.Equals(t, e, nil)
+  assert.Equals(t, tm.CurrentState(), "unlocked")
+  assert.Equals(t, delegate.count, 1)
+  assert.Equals(t, delegate.char, 'i')
 
   e = tm.Process("foobar", 'i')
-  assertEquals(t, e == nil, false)
-  assertEquals(t, e.BadEvent(), "foobar")
-  assertEquals(t, e.InState(), "unlocked")
-  assertEquals(t, e.Error(), "state machine error: cannot find rule for event [foobar] when in state [unlocked]\n")
-  assertEquals(t, tm.CurrentState(), "unlocked")
-  assertEquals(t, delegate.count, 1)
+  assert.False(t, e == nil)
+  assert.Equals(t, e.BadEvent(), "foobar")
+  assert.Equals(t, e.InState(), "unlocked")
+  assert.Equals(t, e.Error(), "state machine error: cannot find rule for event [foobar] when in state [unlocked]\n")
+  assert.Equals(t, tm.CurrentState(), "unlocked")
+  assert.Equals(t, delegate.count, 1)
 
   e = tm.Process("turn", 'q')
-  assertEquals(t, e, nil)
-  assertEquals(t, tm.CurrentState(), "locked")
-  assertEquals(t, delegate.count, 1)
-  assertEquals(t, delegate.entered, 8)
+  assert.Equals(t, e, nil)
+  assert.Equals(t, tm.CurrentState(), "locked")
+  assert.Equals(t, delegate.count, 1)
+  assert.Equals(t, delegate.entered, 8)
 
   e = tm.Process("random", 'p')
-  assertEquals(t, e, nil)
-  assertEquals(t, tm.CurrentState(), "locked")
-  assertEquals(t, delegate.entered, 88)
-}
-
-func assertEquals(t *testing.T, got interface{}, expected interface{}) {
-  if got != expected {
-    _, file, line, _ := runtime.Caller(1)
-    t.Errorf("___ [%s:%d] state machine failure; got %v but expected %v", path.Base(file), line, got, expected)
-  }
+  assert.Equals(t, e, nil)
+  assert.Equals(t, tm.CurrentState(), "locked")
+  assert.Equals(t, delegate.entered, 88)
 }

@@ -2,7 +2,7 @@
 //
 // Here is the basic API:
 //
-//     sm := []Rule{
+//     sm := []fsm.Rule{
 //
 //       { From: "locked",    Event: "coin",     To: "unlocked",  Action: "token_inc" },
 //       { From: "locked",    Event: OnEntry,                     Action: "enter" },
@@ -13,7 +13,7 @@
 //
 //     }
 //
-//     sm := NewStateMachine(rules, &delegate)
+//     sm := fsm.NewStateMachine(rules, &delegate)
 //
 //     sm.Process("coin")
 //     sm.Process("turn", optionalArg, ...)

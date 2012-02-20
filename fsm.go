@@ -25,109 +25,109 @@ package fsm
 import "fmt"
 
 const (
-	OnEntry = "ON_ENTRY"
-	OnExit  = "ON_EXIT"
-	Default = "DEFAULT"
+  OnEntry = "ON_ENTRY"
+  OnExit  = "ON_EXIT"
+  Default = "DEFAULT"
 )
 
 type StateMachineRule struct {
-	From   string
-	Event  string
-	To     string
-	Action string
+  From   string
+  Event  string
+  To     string
+  Action string
 }
 
 // 'action' corresponds to what's in a StateMachineRule
 type Delegate interface {
-	StateMachineCallback(action string, args []interface{})
+  StateMachineCallback(action string, args []interface{})
 }
 
 type StateMachine struct {
-	rules        []StateMachineRule
-	currentState *StateMachineRule
-	delegate     Delegate
+  rules        []StateMachineRule
+  currentState *StateMachineRule
+  delegate     Delegate
 }
 
 // Satisfies the built-in interface 'error'
 type Error interface {
-	error
-	BadEvent() string
-	InState() string
+  error
+  BadEvent() string
+  InState() string
 }
 
 type smError struct {
-	badEvent string
-	inState  string
+  badEvent string
+  inState  string
 }
 
 func (e smError) Error() string {
-	return fmt.Sprintf("state machine error: cannot find rule for event [%s] when in state [%s]\n", e.badEvent, e.inState)
+  return fmt.Sprintf("state machine error: cannot find rule for event [%s] when in state [%s]\n", e.badEvent, e.inState)
 }
 
 func (e smError) InState() string {
-	return e.inState
+  return e.inState
 }
 
 func (e smError) BadEvent() string {
-	return e.badEvent
+  return e.badEvent
 }
 
 // Use this in conjunction with StateMachineRule literals, keeping
 // in mind that To may be omitted for actions, and Action may
 // always be omitted. See the overview above for an example.
 func NewStateMachine(rules []StateMachineRule, delegate Delegate) StateMachine {
-	return StateMachine{delegate: delegate, rules: rules, currentState: &rules[0]}
+  return StateMachine{delegate: delegate, rules: rules, currentState: &rules[0]}
 }
 
 func (m *StateMachine) Process(event string, args ...interface{}) Error {
-	trans := m.findTransMatching(m.currentState.From, event)
-	if trans == nil {
-		trans = m.findTransMatching(m.currentState.From, Default)
-	}
+  trans := m.findTransMatching(m.currentState.From, event)
+  if trans == nil {
+    trans = m.findTransMatching(m.currentState.From, Default)
+  }
 
-	if trans == nil {
-		return smError{event, m.currentState.From}
-	}
+  if trans == nil {
+    return smError{event, m.currentState.From}
+  }
 
-	changing_states := trans.From != trans.To
+  changing_states := trans.From != trans.To
 
-	if changing_states {
-		m.runAction(m.currentState.From, OnExit, args)
-	}
+  if changing_states {
+    m.runAction(m.currentState.From, OnExit, args)
+  }
 
-	if trans.Action != "" {
-		m.delegate.StateMachineCallback(trans.Action, args)
-	}
+  if trans.Action != "" {
+    m.delegate.StateMachineCallback(trans.Action, args)
+  }
 
-	if changing_states {
-		m.runAction(trans.To, OnEntry, args)
-	}
+  if changing_states {
+    m.runAction(trans.To, OnEntry, args)
+  }
 
-	m.currentState = m.findState(trans.To)
+  m.currentState = m.findState(trans.To)
 
-	return nil
+  return nil
 }
 
 func (m *StateMachine) findTransMatching(fromState string, event string) *StateMachineRule {
-	for _, v := range m.rules {
-		if v.From == fromState && v.Event == event {
-			return &v
-		}
-	}
-	return nil
+  for _, v := range m.rules {
+    if v.From == fromState && v.Event == event {
+      return &v
+    }
+  }
+  return nil
 }
 
 func (m *StateMachine) runAction(state string, event string, args []interface{}) {
-	if trans := m.findTransMatching(state, event); trans != nil && trans.Action != "" {
-		m.delegate.StateMachineCallback(trans.Action, args)
-	}
+  if trans := m.findTransMatching(state, event); trans != nil && trans.Action != "" {
+    m.delegate.StateMachineCallback(trans.Action, args)
+  }
 }
 
 func (m *StateMachine) findState(state string) *StateMachineRule {
-	for _, v := range m.rules {
-		if v.From == state {
-			return &v
-		}
-	}
-	return nil
+  for _, v := range m.rules {
+    if v.From == state {
+      return &v
+    }
+  }
+  return nil
 }

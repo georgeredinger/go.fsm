@@ -2,7 +2,7 @@
 //
 // Here is the basic API:
 //
-//     sm := []StateMachineRule{
+//     sm := []Rule{
 //
 //       { From: "locked",    Event: "coin",     To: "unlocked",  Action: "token_inc" },
 //       { From: "locked",    Event: OnEntry,                     Action: "enter" },
@@ -30,21 +30,21 @@ const (
   Default = "DEFAULT"
 )
 
-type StateMachineRule struct {
+type Rule struct {
   From   string
   Event  string
   To     string
   Action string
 }
 
-// 'action' corresponds to what's in a StateMachineRule
+// 'action' corresponds to what's in a Rule
 type Delegate interface {
   StateMachineCallback(action string, args []interface{})
 }
 
 type StateMachine struct {
-  rules        []StateMachineRule
-  currentState *StateMachineRule
+  rules        []Rule
+  currentState *Rule
   delegate     Delegate
 }
 
@@ -72,10 +72,10 @@ func (e smError) BadEvent() string {
   return e.badEvent
 }
 
-// Use this in conjunction with StateMachineRule literals, keeping
+// Use this in conjunction with Rule literals, keeping
 // in mind that To may be omitted for actions, and Action may
 // always be omitted. See the overview above for an example.
-func NewStateMachine(rules []StateMachineRule, delegate Delegate) StateMachine {
+func NewStateMachine(rules []Rule, delegate Delegate) StateMachine {
   return StateMachine{delegate: delegate, rules: rules, currentState: &rules[0]}
 }
 
@@ -112,7 +112,7 @@ func (m *StateMachine) Process(event string, args ...interface{}) Error {
   return nil
 }
 
-func (m *StateMachine) findTransMatching(fromState string, event string) *StateMachineRule {
+func (m *StateMachine) findTransMatching(fromState string, event string) *Rule {
   for _, v := range m.rules {
     if v.From == fromState && v.Event == event {
       return &v
@@ -127,7 +127,7 @@ func (m *StateMachine) runAction(state string, event string, args []interface{})
   }
 }
 
-func (m *StateMachine) findState(state string) *StateMachineRule {
+func (m *StateMachine) findState(state string) *Rule {
   for _, v := range m.rules {
     if v.From == state {
       return &v

@@ -43,7 +43,7 @@ type Delegate interface {
 }
 
 type StateMachine struct {
-	transitions  []StateMachineRule
+	rules        []StateMachineRule
 	currentState *StateMachineRule
 	delegate     Delegate
 }
@@ -61,7 +61,7 @@ type smError struct {
 }
 
 func (e smError) Error() string {
-	return fmt.Sprintf("state machine error: cannot find transition for event [%s] when in state [%s]\n", e.badEvent, e.inState)
+	return fmt.Sprintf("state machine error: cannot find rule for event [%s] when in state [%s]\n", e.badEvent, e.inState)
 }
 
 func (e smError) InState() string {
@@ -75,8 +75,8 @@ func (e smError) BadEvent() string {
 // Use this in conjunction with StateMachineRule literals, keeping
 // in mind that To may be omitted for actions, and Action may
 // always be omitted. See the overview above for an example.
-func NewStateMachine(transitions []StateMachineRule, delegate Delegate) StateMachine {
-	return StateMachine{delegate: delegate, transitions: transitions, currentState: &transitions[0]}
+func NewStateMachine(rules []StateMachineRule, delegate Delegate) StateMachine {
+	return StateMachine{delegate: delegate, rules: rules, currentState: &rules[0]}
 }
 
 func (m *StateMachine) Process(event string, args ...interface{}) Error {
@@ -109,7 +109,7 @@ func (m *StateMachine) Process(event string, args ...interface{}) Error {
 }
 
 func (m *StateMachine) findTransMatching(fromState string, event string) *StateMachineRule {
-	for _, v := range m.transitions {
+	for _, v := range m.rules {
 		if v.From == fromState && v.Event == event {
 			return &v
 		}
@@ -124,7 +124,7 @@ func (m *StateMachine) runAction(state string, event string, args []interface{})
 }
 
 func (m *StateMachine) findState(state string) *StateMachineRule {
-	for _, v := range m.transitions {
+	for _, v := range m.rules {
 		if v.From == state {
 			return &v
 		}

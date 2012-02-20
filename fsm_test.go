@@ -33,7 +33,7 @@ func TestTokenMachine(t *testing.T) {
 		{From: "unlocked", Event: OnExit, Action: "exit"},
 	}
 
-  tm := NewStateMachine(rules, &delegate)
+	tm := NewStateMachine(rules, &delegate)
 
 	var e Error
 
@@ -71,7 +71,7 @@ func TestTokenMachine(t *testing.T) {
 	if !(e.InState() == "unlocked") {
 		t.Errorf("state machine failure")
 	}
-	if !(e.Error() == "state machine error: cannot find transition for event [foobar] when in state [unlocked]\n") {
+	if !(e.Error() == "state machine error: cannot find rule for event [foobar] when in state [unlocked]\n") {
 		t.Errorf("state machine failure")
 	}
 	if !(tm.currentState.From == "unlocked") {

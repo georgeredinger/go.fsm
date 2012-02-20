@@ -1,6 +1,8 @@
 package fsm
 
 import "testing"
+import "runtime"
+import "path"
 
 type testTokenMachineDelegate struct {
   count   int
@@ -37,75 +39,39 @@ func TestTokenMachine(t *testing.T) {
 
   var e Error
 
-  if !(tm.currentState.From == "locked") {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.count == 0) {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.char == 0) {
-    t.Errorf("state machine failure")
-  }
+  assertEquals(t, tm.CurrentState(), "locked")
+  assertEquals(t, delegate.count, 0)
+  assertEquals(t, int(delegate.char), 0)
 
   e = tm.Process("coin", 'i')
-  if !(e == nil) {
-    t.Errorf("state machine failure")
-  }
-  if !(tm.currentState.From == "unlocked") {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.count == 1) {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.char == 'i') {
-    t.Errorf("state machine failure")
-  }
+  assertEquals(t, e, nil)
+  assertEquals(t, tm.CurrentState(), "unlocked")
+  assertEquals(t, delegate.count, 1)
+  assertEquals(t, delegate.char, 'i')
 
   e = tm.Process("foobar", 'i')
-  if !(e != nil) {
-    t.Errorf("state machine failure")
-  }
-  if !(e.BadEvent() == "foobar") {
-    t.Errorf("state machine failure")
-  }
-  if !(e.InState() == "unlocked") {
-    t.Errorf("state machine failure")
-  }
-  if !(e.Error() == "state machine error: cannot find rule for event [foobar] when in state [unlocked]\n") {
-    t.Errorf("state machine failure")
-  }
-  if !(tm.currentState.From == "unlocked") {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.count == 1) {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.char == 'i') {
-    t.Errorf("state machine failure")
-  }
+  assertEquals(t, e == nil, false)
+  assertEquals(t, e.BadEvent(), "foobar")
+  assertEquals(t, e.InState(), "unlocked")
+  assertEquals(t, e.Error(), "state machine error: cannot find rule for event [foobar] when in state [unlocked]\n")
+  assertEquals(t, tm.CurrentState(), "unlocked")
+  assertEquals(t, delegate.count, 1)
 
   e = tm.Process("turn", 'q')
-  if !(e == nil) {
-    t.Errorf("state machine failure")
-  }
-  if !(tm.currentState.From == "locked") {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.count == 1) {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.entered == 8) {
-    t.Errorf("state machine failure, %d", delegate.entered)
-  }
+  assertEquals(t, e, nil)
+  assertEquals(t, tm.CurrentState(), "locked")
+  assertEquals(t, delegate.count, 1)
+  assertEquals(t, delegate.entered, 8)
 
   e = tm.Process("random", 'p')
-  if !(e == nil) {
-    t.Errorf("state machine failure")
-  }
-  if !(tm.currentState.From == "locked") {
-    t.Errorf("state machine failure")
-  }
-  if !(delegate.entered == 88) {
-    t.Errorf("state machine failure, %d", delegate.entered)
+  assertEquals(t, e, nil)
+  assertEquals(t, tm.CurrentState(), "locked")
+  assertEquals(t, delegate.entered, 88)
+}
+
+func assertEquals(t *testing.T, got interface{}, expected interface{}) {
+  if got != expected {
+    _, file, line, _ := runtime.Caller(1)
+    t.Errorf("___ [%s:%d] state machine failure; got %v but expected %v", path.Base(file), line, got, expected)
   }
 }

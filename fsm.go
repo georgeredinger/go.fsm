@@ -79,6 +79,10 @@ func NewStateMachine(rules []StateMachineRule, delegate Delegate) StateMachine {
   return StateMachine{delegate: delegate, rules: rules, currentState: &rules[0]}
 }
 
+func (m *StateMachine) CurrentState() string {
+  return m.currentState.From
+}
+
 func (m *StateMachine) Process(event string, args ...interface{}) Error {
   trans := m.findTransMatching(m.currentState.From, event)
   if trans == nil {

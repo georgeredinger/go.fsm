@@ -49,7 +49,7 @@ func TestTokenMachine(t *testing.T) {
   assert.Equals(t, delegate.char, 'i')
 
   e = tm.Process("foobar", 'i')
-  assert.False(t, e == nil)
+  assert.NotEquals(t, e, nil)
   assert.Equals(t, e.BadEvent(), "foobar")
   assert.Equals(t, e.InState(), "unlocked")
   assert.Equals(t, e.Error(), "state machine error: cannot find rule for event [foobar] when in state [unlocked]\n")

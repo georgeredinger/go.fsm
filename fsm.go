@@ -48,28 +48,13 @@ type StateMachine struct {
   delegate     Delegate
 }
 
-// Satisfies the built-in interface 'error'
-type Error interface {
-  error
-  BadEvent() string
-  InState() string
+type Error struct {
+  BadEvent string
+  InState string
 }
 
-type smError struct {
-  badEvent string
-  inState  string
-}
-
-func (e smError) Error() string {
-  return fmt.Sprintf("state machine error: cannot find rule for event [%s] when in state [%s]\n", e.badEvent, e.inState)
-}
-
-func (e smError) InState() string {
-  return e.inState
-}
-
-func (e smError) BadEvent() string {
-  return e.badEvent
+func (e Error) Error() string {
+  return fmt.Sprintf("state machine error: cannot find rule for event [%s] when in state [%s]\n", e.BadEvent, e.InState)
 }
 
 // Use this in conjunction with Rule literals, keeping
@@ -83,14 +68,17 @@ func (m *StateMachine) CurrentState() string {
   return *m.currentState
 }
 
-func (m *StateMachine) Process(event string, args ...interface{}) Error {
+func (m *StateMachine) Process(event string, args ...interface{}) *Error {
   trans := m.findTransMatching(*m.currentState, event)
   if trans == nil {
     trans = m.findTransMatching(*m.currentState, Default)
   }
 
   if trans == nil {
-    return smError{event, *m.currentState}
+    return &Error{
+      BadEvent: event,
+      InState: *m.currentState,
+    }
   }
 
   changing_states := trans.From != trans.To

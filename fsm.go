@@ -43,8 +43,9 @@ type Delegate interface {
 }
 
 type StateMachine struct {
+  CurrentState string // it seems silly to alter this directly, but not necessarily erroneous
+
   rules        []Rule
-  currentState *string
   delegate     Delegate
 }
 
@@ -61,30 +62,26 @@ func (e Error) Error() string {
 // in mind that To may be omitted for actions, and Action may
 // always be omitted. See the overview above for an example.
 func NewStateMachine(rules []Rule, delegate Delegate) StateMachine {
-  return StateMachine{delegate: delegate, rules: rules, currentState: &rules[0].From}
-}
-
-func (m *StateMachine) CurrentState() string {
-  return *m.currentState
+  return StateMachine{delegate: delegate, rules: rules, CurrentState: rules[0].From}
 }
 
 func (m *StateMachine) Process(event string, args ...interface{}) *Error {
-  trans := m.findTransMatching(*m.currentState, event)
+  trans := m.findTransMatching(m.CurrentState, event)
   if trans == nil {
-    trans = m.findTransMatching(*m.currentState, Default)
+    trans = m.findTransMatching(m.CurrentState, Default)
   }
 
   if trans == nil {
     return &Error{
       BadEvent: event,
-      InState: *m.currentState,
+      InState: m.CurrentState,
     }
   }
 
   changing_states := trans.From != trans.To
 
   if changing_states {
-    m.runAction(*m.currentState, OnExit, args)
+    m.runAction(m.CurrentState, OnExit, args)
   }
 
   if trans.Action != "" {
@@ -95,7 +92,7 @@ func (m *StateMachine) Process(event string, args ...interface{}) *Error {
     m.runAction(trans.To, OnEntry, args)
   }
 
-  m.currentState = &m.findState(trans.To).From
+  m.CurrentState = m.findState(trans.To).From
 
   return nil
 }

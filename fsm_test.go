@@ -38,13 +38,13 @@ func TestTokenMachine(t *testing.T) {
 
   var e *Error
 
-  assert.Equals(t, tm.CurrentState(), "locked")
+  assert.Equals(t, tm.CurrentState, "locked")
   assert.Equals(t, delegate.count, 0)
   assert.Equals(t, int(delegate.char), 0)
 
   e = tm.Process("coin", 'i')
   assert.True(t, e == nil)
-  assert.Equals(t, tm.CurrentState(), "unlocked")
+  assert.Equals(t, tm.CurrentState, "unlocked")
   assert.Equals(t, delegate.count, 1)
   assert.Equals(t, delegate.char, 'i')
 
@@ -53,17 +53,17 @@ func TestTokenMachine(t *testing.T) {
   assert.Equals(t, e.BadEvent, "foobar")
   assert.Equals(t, e.InState, "unlocked")
   assert.Equals(t, e.Error(), "state machine error: cannot find rule for event [foobar] when in state [unlocked]\n")
-  assert.Equals(t, tm.CurrentState(), "unlocked")
+  assert.Equals(t, tm.CurrentState, "unlocked")
   assert.Equals(t, delegate.count, 1)
 
   e = tm.Process("turn", 'q')
   assert.True(t, e == nil)
-  assert.Equals(t, tm.CurrentState(), "locked")
+  assert.Equals(t, tm.CurrentState, "locked")
   assert.Equals(t, delegate.count, 1)
   assert.Equals(t, delegate.entered, 8)
 
   e = tm.Process("random", 'p')
   assert.True(t, e == nil)
-  assert.Equals(t, tm.CurrentState(), "locked")
+  assert.Equals(t, tm.CurrentState, "locked")
   assert.Equals(t, delegate.entered, 88)
 }

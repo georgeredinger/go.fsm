@@ -92,7 +92,7 @@ func (m *StateMachine) Process(event string, args ...interface{}) *Error {
     m.runAction(trans.To, OnEntry, args)
   }
 
-  m.CurrentState = m.findState(trans.To).From
+  m.CurrentState = trans.To
 
   return nil
 }
@@ -110,13 +110,4 @@ func (m *StateMachine) runAction(state string, event string, args []interface{})
   if trans := m.findTransMatching(state, event); trans != nil && trans.Action != "" {
     m.delegate.StateMachineCallback(trans.Action, args)
   }
-}
-
-func (m *StateMachine) findState(state string) *Rule {
-  for _, v := range m.rules {
-    if v.From == state {
-      return &v
-    }
-  }
-  return nil
 }

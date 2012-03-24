@@ -1,8 +1,7 @@
 package fsm
 
 import "testing"
-
-import "github.com/sdegutis/assert"
+import "github.com/sdegutis/go.assert"
 
 type testTokenMachineDelegate struct {
   count   int
